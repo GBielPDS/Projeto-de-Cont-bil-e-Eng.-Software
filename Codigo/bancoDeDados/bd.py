@@ -50,4 +50,19 @@ class Banco_Dados():
 
             conn.commit()
             conn.close()
+    
+    def novo_produto(self, nome, descricao, preco, estoque):
+        conn = sqlite3.connect(self.arquivo)
+        cursor = conn.cursor()
+        cursor.execute('''
+        INSERT INTO produtos (nome, descricao, preco, estoque)
+        VALUES (?, ?, ?, ?)
+        ''', (nome, descricao, preco, estoque))
+        conn.commit()
+        conn.close()
 
+    def buscar_produto(self,):
+        pass
+
+    def editar_produto(self, id, coluna, valor):
+        pass
