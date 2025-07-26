@@ -2,13 +2,15 @@ import sqlite3
 import os
 
 class Banco_Dados():
-    def __init__(self, arquivo):
+    def __init__(self, arquivo="empresa.db"):
         self.arquivo = arquivo
-        if os.path.exists(arquivo):
+        
+    def criar_banco(self):    
+        if os.path.exists(self.arquivo):
             print("Banco de dados já existe.")
         else:
             print("Banco de dados não existe. Criando...")
-            conn = sqlite3.connect(arquivo)
+            conn = sqlite3.connect(self.arquivo)
             cursor = conn.cursor()
 
             # Criar todas tabelas
