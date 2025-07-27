@@ -63,8 +63,21 @@ class Banco_Dados():
         conn.commit()
         conn.close()
 
-    def buscar_produto(self,):
-        pass
+    def buscar_produto(self,coluna, valor):
+        conn = sqlite3.connect(self.arquivo)
+        cursor = conn.cursor()
+        cursor.execute(f'SELECT * FROM produtos WHERE {coluna} = ?', (valor,))
+        resultado = cursor.fetchall()
+        conn.close()
+        return resultado
+    
+    def mostrar_todos(self, tabela):
+        conn = sqlite3.connect(self.arquivo)
+        cursor = conn.cursor()
+        cursor.execute(f'SELECT * FROM {tabela}')
+        resultados = cursor.fetchall()
+        conn.close()
+        return resultados
 
     def editar_produto(self, id, coluna, valor):
         pass

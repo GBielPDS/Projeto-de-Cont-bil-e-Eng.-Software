@@ -11,8 +11,10 @@ class Gerente():
         banco = Banco_Dados()
         banco.novo_produto(nome, descricao, preco, estoque)
 
-    def buscar_produto():
-        pass
+    def buscar_produto(coluna, valor):
+        banco = Banco_Dados()
+        return banco.buscar_produto(coluna, valor)
+        
 
     def editar_produto():
         pass
@@ -26,6 +28,18 @@ class Gerente():
     def editar_funionario():
         pass
 
+    def mostrar_tabela(self, tabela):
+        banco = Banco_Dados()
+        match tabela:
+            case "produto":
+                tabela = "produtos"
+                return banco.mostrar_todos(tabela)
+            case "funcionario":
+                tabela = "funcionarios"
+                return banco.mostrar_todos(tabela)
+            case _:
+                raise ValueError("Tabela inválida. Use 'produto' ou 'funcionario'.")
+        
     def gerar_relatorio():
         pass
     

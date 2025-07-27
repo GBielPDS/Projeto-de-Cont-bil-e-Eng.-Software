@@ -50,10 +50,10 @@ class Produto_janela(ctk.CTk):
         pass
 
     def buscar_produtos(self):
-        pass
+        self.frame_produto.pack(pady=10, padx=10, fill="x")
+        
 
     def salvar_produto(self):
-
         nome = self.entry_nome.get()
         preco = self.entry_preco.get()
         descricao = self.entry_descricao.get()
