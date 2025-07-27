@@ -30,16 +30,7 @@ class Gerente():
 
     def mostrar_tabela(self, tabela):
         banco = Banco_Dados()
-        match tabela:
-            case "produto":
-                tabela = "produtos"
-                return banco.mostrar_todos(tabela)
-            case "funcionario":
-                tabela = "funcionarios"
-                return banco.mostrar_todos(tabela)
-            case _:
-                raise ValueError("Tabela inválida. Use 'produto' ou 'funcionario'.")
-        
+        return banco.mostrar_todos(tabela)
     def gerar_relatorio():
         pass
     
