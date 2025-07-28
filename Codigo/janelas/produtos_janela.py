@@ -18,7 +18,6 @@ class Produto_janela(ctk.CTk):
         self.label = ctk.CTkLabel(self, text="Bem-vindo ao sistema de gerenciamento!")
         self.label.pack(pady=20)
 
-
         # Frame para os botões de ação
         self.frame_botoes = ctk.CTkFrame(self)
         self.frame_botoes.pack(pady=10, padx=10, fill="x")
@@ -31,6 +30,10 @@ class Produto_janela(ctk.CTk):
 
         self.button_buscar = ctk.CTkButton(self.frame_botoes, text="Buscar Produtos", command=self.buscar_produtos)
         self.button_buscar.pack(side=LEFT, padx=5, pady=5, expand=True, fill="x")
+
+        # Botão Home
+        self.button_home = ctk.CTkButton(self.frame_botoes, text="Home", command=self.open_home)
+        self.button_home.pack(side=LEFT, padx=5, pady=5, expand=True, fill="x")
 
         # ------ Frame para entrada de dados do produto ------
         self.frame_produto = ctk.CTkFrame(self)
@@ -359,3 +362,10 @@ class Produto_janela(ctk.CTk):
         if hasattr(self, 'frame_editar_form') and self.frame_editar_form:
             self.frame_editar_form.destroy()
         self.label_alerta.configure(text="")
+
+    def open_home(self):
+        global app
+        from Codigo.janelas.home import Home_janela
+        self.after(100, self.destroy)
+        app = Home_janela()
+        app.mainloop()

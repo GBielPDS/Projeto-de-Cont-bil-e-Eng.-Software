@@ -26,6 +26,18 @@ class Venda_janela(ctk.CTk):
         )
         self.button_venda.pack(side=LEFT, padx=10, pady=10, expand=True, fill="x")
 
+        self.button_home = ctk.CTkButton(
+            self.frame_botoes, text="Home", command=self.open_home
+        )
+        self.button_home.pack(side=LEFT, padx=10, pady=10, expand=True, fill="x")
+
+    def open_home(self):
+        global app
+        from Codigo.janelas.home import Home_janela
+        self.after(100, self.destroy)
+        app = Home_janela()
+        app.mainloop()
+
     def vender_produto(self):
         # Remove frames antigos se existirem
         if hasattr(self, 'frame_venda_produtos') and self.frame_venda_produtos:

@@ -31,6 +31,7 @@ class Gerente():
     def mostrar_tabela(self, tabela):
         banco = Banco_Dados()
         return banco.mostrar_todos(tabela)
+    
     def gerar_relatorio():
         pass
     
