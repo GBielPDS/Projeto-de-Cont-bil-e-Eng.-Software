@@ -13,7 +13,7 @@ class Banco_Dados():
             conn = sqlite3.connect(self.arquivo)
             cursor = conn.cursor()
 
-            # Criar todas tabelas
+            # Cria todas as tabelas
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS funcionarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,6 +27,7 @@ class Banco_Dados():
             )
             ''')
 
+
             cursor.execute('''
             CREATE TABLE IF NOT EXISTS produtos (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,15 +39,23 @@ class Banco_Dados():
             ''')
 
             cursor.execute('''
+            CREATE TABLE IF NOT EXISTS comprovante_vendas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                produto_id INTEGER NOT NULL,
+                quantidade INTEGER NOT NULL,
+                valor_total REAL NOT NULL,
+                codigo INTEGER NOT NULL,
+                data_venda TEXT NOT NULL,
+                FOREIGN KEY (produto_id) REFERENCES produtos(id)
+            )
+            ''')
+
+            cursor.execute('''
             CREATE TABLE IF NOT EXISTS historico_vendas (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 data_venda TEXT NOT NULL,
-                funcionario_id INTEGER,
-                produto_id INTEGER,
-                quantidade INTEGER NOT NULL,
-                valor_total REAL NOT NULL,
-                FOREIGN KEY (funcionario_id) REFERENCES funcionarios(id),
-                FOREIGN KEY (produto_id) REFERENCES produtos(id)
+                codigo_comprovante INTEGER NOT NULL,
+                FOREIGN KEY (codigo_comprovante) REFERENCES comprovante_vendas(codigo)
             )
             ''')
 
@@ -63,10 +72,13 @@ class Banco_Dados():
         conn.commit()
         conn.close()
 
-    def buscar_produto(self,coluna, valor):
+    def buscar_produto(self, coluna, valor):
         conn = sqlite3.connect(self.arquivo)
         cursor = conn.cursor()
-        cursor.execute(f'SELECT * FROM produtos WHERE {coluna} = ?', (valor,))
+        if coluna == "nome":
+            cursor.execute(f"SELECT * FROM produtos WHERE UPPER(nome) LIKE ?", (f"%{valor.upper()}%",))
+        else:
+            cursor.execute(f"SELECT * FROM produtos WHERE {coluna} = ?", (valor,))
         resultado = cursor.fetchall()
         conn.close()
         return resultado
@@ -79,5 +91,45 @@ class Banco_Dados():
         conn.close()
         return resultados
 
-    def editar_produto(self, id, coluna, valor):
-        pass
+    def atualizar_produto(self, id_produto, nome, descricao, preco, estoque):
+        conn = sqlite3.connect(self.arquivo)
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE produtos
+            SET nome = ?, descricao = ?, preco = ?, estoque = ?
+            WHERE id = ?
+        ''', (nome, descricao, preco, estoque, id_produto))
+        conn.commit()
+        conn.close()
+
+    def gerar_comprovante_venda(self, produto_id, quantidade, valor_total, codigo, data_venda):
+        conn = sqlite3.connect(self.arquivo)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO comprovante_vendas (produto_id, quantidade, valor_total, codigo, data_venda)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (produto_id, quantidade, valor_total, codigo, data_venda))
+        conn.commit()
+        conn.close()
+
+    def gerar_codigo_comprovante(self):
+        conn = sqlite3.connect(self.arquivo)
+        cursor = conn.cursor()
+        cursor.execute('SELECT MAX(codigo) FROM comprovante_vendas')
+        ultimo_codigo = cursor.fetchone()[0]
+        if ultimo_codigo is None:
+            novo_codigo = 1
+        else:
+            novo_codigo = ultimo_codigo + 1
+        conn.close()
+        return novo_codigo
+
+    def registrar_historico_venda(self, data_venda, codigo_comprovante):
+        conn = sqlite3.connect(self.arquivo)
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO historico_vendas (data_venda, codigo_comprovante)
+            VALUES (?, ?)
+        ''', (data_venda, codigo_comprovante))
+        conn.commit()
+        conn.close()

@@ -70,7 +70,34 @@ class Produto_janela(ctk.CTk):
         self.label_alerta.pack_forget()
 
     def editar_produtos(self):
-        pass
+        # Remove frames antigos se existirem
+        if hasattr(self, 'frame_editar') and self.frame_editar:
+            self.frame_editar.destroy()
+        if hasattr(self, 'frame_tabela_editar') and self.frame_tabela_editar:
+            self.frame_tabela_editar.destroy()
+        if hasattr(self, 'frame_editar_form') and self.frame_editar_form:
+            self.frame_editar_form.destroy()
+
+        # Frame para buscar produto por ID ou Nome
+        self.frame_editar = ctk.CTkFrame(self)
+        self.frame_editar.pack(pady=10, padx=10, fill="x")
+
+        self.entry_editar_id = ctk.CTkEntry(self.frame_editar, placeholder_text="ID do Produto")
+        self.entry_editar_id.pack(side=LEFT, padx=5, pady=5, expand=True, fill="x")
+        self.entry_editar_nome = ctk.CTkEntry(self.frame_editar, placeholder_text="Nome do Produto")
+        self.entry_editar_nome.pack(side=LEFT, padx=5, pady=5, expand=True, fill="x")
+
+        self.button_buscar_editar = ctk.CTkButton(
+            self.frame_editar, text="Buscar", 
+            command=self._buscar_produtos_para_editar
+        )
+        self.button_buscar_editar.pack(side=LEFT, padx=5, pady=5, expand=True, fill="x")
+
+        # Botão fechar para toda a área de edição
+        self.button_fechar_editar = ctk.CTkButton(
+            self.frame_editar, text="Fechar", command=self.fechar_editar_produto
+        )
+        self.button_fechar_editar.pack(side=LEFT, padx=5, pady=5, expand=True, fill="x")
 
     def buscar_produtos(self):
 
@@ -86,8 +113,12 @@ class Produto_janela(ctk.CTk):
         self.label_alerta.configure(text="")
         self.label_alerta.pack_forget()
         try:
-            self.entry_busca.pack_forget()
-            self.button_executar_busca.pack_forget()
+            if hasattr(self, 'entry_busca') and self.entry_busca:
+                self.entry_busca.pack_forget()
+            if hasattr(self, 'button_executar_busca') and self.button_executar_busca:
+                self.button_executar_busca.pack_forget()
+            if hasattr(self, 'frame_tabela') and self.frame_tabela:
+                self.frame_tabela.destroy()
         except AttributeError:
             pass
 
@@ -136,6 +167,7 @@ class Produto_janela(ctk.CTk):
         if not valor:
             self._mostrar_tabela([], ["Nome não pode ser vazio."])
             return
+        valor = valor.upper()
         resultados = self.bd.buscar_produto('nome', valor)
         if resultados:
             if isinstance(resultados, tuple):
@@ -182,7 +214,7 @@ class Produto_janela(ctk.CTk):
         if hasattr(self, 'frame_tabela') and self.frame_tabela:
             self.frame_tabela.destroy()
         try:
-            resultados = self.bd.mostrar_todos = self.bd.mostrar_todos('produtos')
+            resultados = self.bd.mostrar_todos('produtos')
         except Exception as e:
             self._mostrar_tabela([], [f"Erro ao buscar produtos: {e}"])
             return
@@ -195,9 +227,9 @@ class Produto_janela(ctk.CTk):
         
 
     def salvar_produto(self):
-        nome = self.entry_nome.get()
+        nome = self.entry_nome.get().upper()
         preco = self.entry_preco.get()
-        descricao = self.entry_descricao.get()
+        descricao = self.entry_descricao.get().upper()
         estoque = self.entry_estoque.get()
         print(f"Entrada, nome: {nome}, Preço: {preco}, Descrição: {descricao}, Estoque: {estoque}")
 
@@ -228,7 +260,102 @@ class Produto_janela(ctk.CTk):
             self.entry_descricao.focus()
             self.entry_nome.focus()
 
+    def _buscar_produtos_para_editar(self):
+        # Remove tabela anterior se existir
+        if hasattr(self, 'frame_tabela_editar') and self.frame_tabela_editar:
+            self.frame_tabela_editar.destroy()
+        if hasattr(self, 'frame_editar_form') and self.frame_editar_form:
+            self.frame_editar_form.destroy()
 
-    
-janela = Produto_janela()
-janela.mainloop()
+        id_valor = self.entry_editar_id.get().strip()
+        nome_valor = self.entry_editar_nome.get().strip().upper()
+
+        if id_valor:
+            resultados = self.bd.buscar_produto('id', int(id_valor)) if id_valor.isdigit() else []
+        elif nome_valor:
+            resultados = self.bd.buscar_produto('nome', nome_valor)
+        else:
+            resultados = []
+
+        self.frame_tabela_editar = ctk.CTkFrame(self)
+        self.frame_tabela_editar.pack(pady=10, padx=10, fill="x")
+
+        if not resultados:
+            label = ctk.CTkLabel(self.frame_tabela_editar, text="Nenhum produto encontrado.", font=("Arial", 12, "bold"))
+            label.pack()
+            return
+
+        campos = ["id", "nome", "descricao", "preco", "estoque"]
+        for idx, linha in enumerate(resultados):
+            texto = "\n".join([f"{campos[i]}: {linha[i]}" for i in range(len(campos))])
+            btn = ctk.CTkButton(
+                self.frame_tabela_editar, 
+                text=texto, 
+                anchor="w",
+                command=lambda l=linha: self._mostrar_form_editar_produto(l)
+            )
+            btn.pack(fill="x", pady=3, padx=5)
+
+    def _mostrar_form_editar_produto(self, produto):
+        # Remove tabela e form anterior se existirem
+        if hasattr(self, 'frame_tabela_editar') and self.frame_tabela_editar:
+            self.frame_tabela_editar.destroy()
+        if hasattr(self, 'frame_editar_form') and self.frame_editar_form:
+            self.frame_editar_form.destroy()
+
+        self.frame_editar_form = ctk.CTkFrame(self)
+        self.frame_editar_form.pack(pady=10, padx=10, fill="x")
+
+        campos = ["id", "nome", "descricao", "preco", "estoque"]
+        self.editar_entries = {}
+
+        for i, campo in enumerate(campos):
+            label = ctk.CTkLabel(self.frame_editar_form, text=f"{campo.capitalize()}:")
+            label.grid(row=i, column=0, sticky="w", padx=5, pady=2)
+            entry = ctk.CTkEntry(self.frame_editar_form)
+            entry.insert(0, str(produto[i]))
+            if campo == "id":
+                entry.configure(state="disabled")
+            entry.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
+            self.editar_entries[campo] = entry
+
+        button_salvar = ctk.CTkButton(
+            self.frame_editar_form, text="Salvar Alterações",
+            command=self._salvar_edicao_produto
+        )
+        button_salvar.grid(row=len(campos), column=0, columnspan=2, pady=10)
+
+    def _salvar_edicao_produto(self):
+        # Recupera os valores editados
+        id_produto = self.editar_entries["id"].get()
+        nome = self.editar_entries["nome"].get().upper()
+        descricao = self.editar_entries["descricao"].get().upper()
+        preco = self.editar_entries["preco"].get()
+        estoque = self.editar_entries["estoque"].get()
+
+        # Aqui você pode adicionar validações se quiser
+
+        self.bd.atualizar_produto(id_produto, nome, descricao, preco, estoque)
+        self.label_alerta.configure(text="Produto atualizado com sucesso!")
+        if hasattr(self, 'frame_editar_form') and self.frame_editar_form:
+            self.frame_editar_form.destroy()
+
+        # Buscar o produto atualizado e mostrar na tela
+        produto_atualizado = self.bd.buscar_produto('id', int(id_produto))
+        if produto_atualizado:
+            self.frame_tabela_editar = ctk.CTkFrame(self)
+            self.frame_tabela_editar.pack(pady=10, padx=10, fill="x")
+            campos = ["id", "nome", "descricao", "preco", "estoque"]
+            for idx, linha in enumerate(produto_atualizado):
+                texto = "\n".join([f"{campos[i]}: {linha[i]}" for i in range(len(campos))])
+                label = ctk.CTkLabel(self.frame_tabela_editar, text=texto, anchor="w", justify="left")
+                label.pack(fill="x", pady=3, padx=5)
+
+    def fechar_editar_produto(self):
+        if hasattr(self, 'frame_editar') and self.frame_editar:
+            self.frame_editar.destroy()
+        if hasattr(self, 'frame_tabela_editar') and self.frame_tabela_editar:
+            self.frame_tabela_editar.destroy()
+        if hasattr(self, 'frame_editar_form') and self.frame_editar_form:
+            self.frame_editar_form.destroy()
+        self.label_alerta.configure(text="")
