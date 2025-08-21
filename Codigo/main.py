@@ -1,9 +1,7 @@
-from bancoDeDados.bd import Banco_Dados
-from janelas.home import Home_janela
+import tkinter as tk
+from login import LoginWindow
 
-bd = Banco_Dados("empresa.db")
-bd.criar_banco()
-
-global app
-app = Home_janela()
-app.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    LoginWindow(root)
+    root.mainloop()
